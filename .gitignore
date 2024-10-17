@@ -19,3 +19,6 @@ install.lock
 .idea/
 
 node_modules/
+
+md/
+tmp/
