@@ -3,7 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 
 	"github.com/astaxie/beego"
 	"github.com/phachon/mm-wiki/app/utils"
@@ -22,66 +22,44 @@ type AIChatResponse struct {
 	Reply string `json:"reply"`
 }
 
-func (this *AIChatController) Post() {
-	// Log the raw request body
-	body, err := ioutil.ReadAll(this.Ctx.Request.Body)
+func (c *AIChatController) Post() {
+	body, err := io.ReadAll(c.Ctx.Request.Body)
 	if err != nil {
-		beego.Error("Failed to read request body:", err)
-		this.Ctx.Output.SetStatus(400)
-		this.Data["json"] = map[string]interface{}{
-			"error":   "Invalid request: " + err.Error(),
-			"details": "Failed to read request body",
-		}
-		this.ServeJSON()
+		c.handleError(400, "Invalid request: "+err.Error(), "Failed to read request body")
 		return
 	}
-	// beego.Info("Request Body:", string(body))
 
-	// Restore the body to the request so it can be read again
-	this.Ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	c.Ctx.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	var req AIChatRequest
-	err = json.Unmarshal(body, &req)
-	if err != nil {
-		beego.Error("Failed to unmarshal request body:", err)
-		this.Ctx.Output.SetStatus(400)
-		this.Data["json"] = map[string]interface{}{
-			"error":   "Invalid request: " + err.Error(),
-			"details": "Failed to parse JSON body",
-		}
-		this.ServeJSON()
+	if err := json.Unmarshal(body, &req); err != nil {
+		c.handleError(400, "Invalid request: "+err.Error(), "Failed to parse JSON body")
 		return
 	}
 
-	// Log the parsed request
-	// beego.Info("Parsed request:", req)
-
-	// Validate required fields
 	if req.Document == "" || req.Message == "" {
-		this.Ctx.Output.SetStatus(400)
-		this.Data["json"] = map[string]interface{}{
-			"error":   "Invalid request",
-			"details": "Both 'document' and 'message' fields are required",
-		}
-		this.ServeJSON()
+		c.handleError(400, "Invalid request", "Both 'document' and 'message' fields are required")
 		return
 	}
 
-	// Call the large language model
 	reply, err := callLargeLanguageModel(req.Document, req.Message)
 	if err != nil {
-		beego.Error("Error calling large language model:", err)
-		this.Ctx.Output.SetStatus(500)
-		this.Data["json"] = map[string]interface{}{
-			"error":   "Internal server error",
-			"details": err.Error(),
-		}
-		this.ServeJSON()
+		c.handleError(500, "Internal server error", err.Error())
 		return
 	}
 
-	this.Data["json"] = AIChatResponse{Reply: reply}
-	this.ServeJSON()
+	c.Data["json"] = AIChatResponse{Reply: reply}
+	c.ServeJSON()
+}
+
+func (c *AIChatController) handleError(status int, errorMsg, details string) {
+	beego.Error(errorMsg + ": " + details)
+	c.Ctx.Output.SetStatus(status)
+	c.Data["json"] = map[string]interface{}{
+		"error":   errorMsg,
+		"details": details,
+	}
+	c.ServeJSON()
 }
 
 func callLargeLanguageModel(document, message string) (string, error) {

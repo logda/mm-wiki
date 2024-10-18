@@ -44,6 +44,28 @@ curl -X POST https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions 
 }'
 ```
 
+通义千问接口流式
+
+```
+curl -X POST https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions \
+-H "Authorization: Bearer YOUR_API_KEY" \
+-H "Content-Type: application/json" \
+-d '{
+    "model": "qwen-plus",
+    "messages": [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant."
+        },
+        {
+            "role": "user",
+            "content": "你是谁？"
+        }
+    ],
+    "stream":true,
+}'
+```
+
 文档问答接口验证
 
 ```
