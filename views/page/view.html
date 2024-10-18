@@ -94,6 +94,23 @@
 </div> -->
 
 <!-- update: AI助手浮动窗口 -->
+<!-- <div id="ai-chat-window" class="ai-chat-window" style="display: none;">
+    <div class="ai-chat-header">
+        AI助理
+        <span class="ai-chat-close">&times;</span>
+    </div>
+    <div id="ai-chat-messages" class="ai-chat-messages"></div>
+    <div class="ai-chat-input">
+        <input type="text" id="ai-chat-input" placeholder="请输入您的问题...">
+        <button id="ai-chat-send">发送</button>
+    </div>
+</div>
+
+<div id="ai-chat-loading" class="ai-chat-loading" style="display: none;">
+    <div class="ai-chat-loading-spinner"></div>
+    <span>AI正在思考中...</span>
+</div> -->
+
 <div id="ai-chat-window" class="ai-chat-window" style="display: none;">
     <div class="ai-chat-header">
         AI助理
@@ -107,17 +124,9 @@
 </div>
 
 
-<!-- update: 右下角的小按钮 -->
-<!-- <button id="ai-chat-toggle" class="ai-chat-toggle">
-    <i class="fa fa-comments"></i>  AI
-</button> -->
 <button id="ai-chat-toggle" class="ai-chat-toggle">
     AI
 </button>
-
-<!-- <script  type="text/javascript"  src="/static/plugins/marked/marked.min.js"></script> -->
-<!-- <script  type="text/javascript"  src="/static/plugins/mark/mark.min.js"></script> -->
-
 
 <script src="/static/plugins/md-toc/md-toc.js"></script>
 <script type="text/javascript">
@@ -199,13 +208,13 @@
 
     // ADD: AI助手功能
     $(function () {
-        
         var aiChatWindow = $("#ai-chat-window");
         var aiChatMessages = $("#ai-chat-messages");
         var aiChatInput = $("#ai-chat-input");
         var aiChatSend = $("#ai-chat-send");
         var aiChatClose = $(".ai-chat-close");
         var aiChatToggle = $("#ai-chat-toggle");
+        var aiChatLoading = $("#ai-chat-loading");
 
         aiChatClose.click(function () {
             aiChatWindow.hide();
@@ -220,43 +229,96 @@
         aiChatSend.click(sendMessage);
         aiChatInput.keypress(function (e) {
             if (e.which == 13) {
-            sendMessage();
+                sendMessage();
             }
         });
 
+        // function sendMessage() {
+        //     var message = aiChatInput.val().trim();
+        //     if (message) {
+        //         appendMessage("user", message);
+        //         aiChatInput.val("");
+
+        //         // 显示加载状态并禁用输入和发送按钮
+        //         aiChatLoading.show();
+        //         aiChatInput.prop('disabled', true);
+        //         aiChatSend.prop('disabled', true);
+
+        //         // 获取文档内容
+        //         var documentContent = $("#document_page_view").text();
+
+        //         // 发送API请求
+        //         $.ajax({
+        //             url: "/api/ai-chat",
+        //             method: "POST",
+        //             data: JSON.stringify({
+        //                 document: documentContent,
+        //                 message: message
+        //             }),
+        //             contentType: "application/json",
+        //             success: function (response) {
+        //                 appendMessage("assistant", response.reply);
+        //             },
+        //             error: function () {
+        //                 appendMessage("assistant", "抱歉，发生了错误。");
+        //             },
+        //             complete: function () {
+        //                 // 隐藏加载状态并启用输入和发送按钮
+        //                 aiChatLoading.hide();
+        //                 aiChatInput.prop('disabled', false);
+        //                 aiChatSend.prop('disabled', false);
+        //                 aiChatInput.focus();
+        //             }
+        //         });
+        //     }
+        // }
+
         function sendMessage() {
             var message = aiChatInput.val().trim();
-        if (message) {
-            appendMessage("user", message);
-        aiChatInput.val("");
+            if (message) {
+                appendMessage("user", message);
+                aiChatInput.val("");
 
-        // 获取文档内容
-        var documentContent = $("#document_page_view").text();
+                // 添加动态的"AI正在思考"提示
+                var thinkingId = "thinking-" + Date.now();
+                aiChatMessages.append("<div id='" + thinkingId + "' class='assistant-message thinking-message'>AI正在思考中</div>");
+                aiChatMessages.scrollTop(aiChatMessages[0].scrollHeight);
 
-        // 发送API请求
-        $.ajax({
-            url: "/api/ai-chat", // 这里需要替换为实际的API端点
-        method: "POST",
-        data: JSON.stringify({
-            document: documentContent,
-        message: message
+                // 禁用输入和发送按钮
+                aiChatInput.prop('disabled', true);
+                aiChatSend.prop('disabled', true);
+
+                // 获取文档内容
+                var documentContent = $("#document_page_view").text();
+
+                // 发送API请求
+                $.ajax({
+                    url: "/api/ai-chat",
+                    method: "POST",
+                    data: JSON.stringify({
+                        document: documentContent,
+                        message: message
                     }),
-        contentType: "application/json",
-        success: function (response) {
-            appendMessage("assistant", response.reply);
+                    contentType: "application/json",
+                    success: function (response) {
+                        // 移除"AI正在思考"的提示
+                        $("#" + thinkingId).remove();
+                        appendMessage("assistant", response.reply);
                     },
-        error: function () {
-            appendMessage("assistant", "抱歉，发生了错误。");
+                    error: function () {
+                        // 移除"AI正在思考"的提示
+                        $("#" + thinkingId).remove();
+                        appendMessage("assistant", "抱歉，发生了错误。");
+                    },
+                    complete: function () {
+                        // 启用输入和发送按钮
+                        aiChatInput.prop('disabled', false);
+                        aiChatSend.prop('disabled', false);
+                        aiChatInput.focus();
                     }
                 });
             }
         }
-
-        // function appendMessage(role, content) {
-        //     var messageClass = role === "user" ? "user-message" : "assistant-message"
-        // aiChatMessages.append("<div class='" + messageClass + "'>" + content + "</div>");
-        // aiChatMessages.scrollTop(aiChatMessages[0].scrollHeight);
-        // }
 
         function appendMessage(role, content) {
             var messageClass = role === "user" ? "user-message" : "assistant-message";

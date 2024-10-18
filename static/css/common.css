@@ -761,3 +761,81 @@ mark {
 .ai-chat-messages::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+/* 在文件末尾添加以下样式 */
+.ai-chat-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.ai-chat-loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.ai-chat-messages {
+    position: relative;
+}
+
+#ai-chat-loading {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(248, 249, 250, 0.9);
+    z-index: 1;
+}
+
+.thinking-message {
+    font-style: italic;
+    color: #888;
+}
+
+.thinking-message::after {
+    content: '...';
+    animation: thinking 1.5s infinite;
+    display: inline-block;
+    width: 20px;
+    text-align: left;
+}
+
+
+@keyframes thinking {
+
+    0%,
+    20% {
+        content: '';
+    }
+
+    40% {
+        content: '.';
+    }
+
+    60% {
+        content: '..';
+    }
+
+    80%,
+    100% {
+        content: '...';
+    }
+}
