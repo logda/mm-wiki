@@ -84,23 +84,14 @@ func (this *AIChatController) Post() {
 	this.ServeJSON()
 }
 
-// func callLargeLanguageModel(document, message string) (string, error) {
-
-// 	client := utils.NewDashScopeClient("sk-db3c48935a704e1994258b928aa3ef24")
-
-// 	response, err := client.ChatCompletion(document, message)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	return response.Choices[0].Message.Content, nil
-// }
-
 func callLargeLanguageModel(document, message string) (string, error) {
-	// Read the API key from the configuration
-	apiKey := beego.AppConfig.String("dashscope_api_key")
+	// Read from the configuration
 
-	client := utils.NewDashScopeClient(apiKey)
+	apiKey := beego.AppConfig.String("llm_key")
+	model := beego.AppConfig.String("llm_name")
+	chatURL := beego.AppConfig.String("llm_url")
+
+	client := utils.NewDashScopeClient(apiKey, model, chatURL)
 
 	response, err := client.ChatCompletion(document, message)
 	if err != nil {

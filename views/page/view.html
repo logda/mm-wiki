@@ -79,7 +79,8 @@
 </div>
 
 </div>
-<!-- ADD:AI助手浮动窗口 -->
+
+<!-- ADD:AI助手浮动窗口
 <div id="ai-chat-window" class="ai-chat-window">
     <div class="ai-chat-header">
         AI 助手
@@ -90,8 +91,32 @@
         <input type="text" id="ai-chat-input" placeholder="输入您的问题...">
         <button id="ai-chat-send">发送</button>
     </div>
+</div> -->
+
+<!-- update: AI助手浮动窗口 -->
+<div id="ai-chat-window" class="ai-chat-window" style="display: none;">
+    <div class="ai-chat-header">
+        AI助理
+        <span class="ai-chat-close">&times;</span>
+    </div>
+    <div id="ai-chat-messages" class="ai-chat-messages"></div>
+    <div class="ai-chat-input">
+        <input type="text" id="ai-chat-input" placeholder="请输入您的问题...">
+        <button id="ai-chat-send">发送</button>
+    </div>
 </div>
 
+
+<!-- update: 右下角的小按钮 -->
+<!-- <button id="ai-chat-toggle" class="ai-chat-toggle">
+    <i class="fa fa-comments"></i>  AI
+</button> -->
+<button id="ai-chat-toggle" class="ai-chat-toggle">
+    AI
+</button>
+
+<!-- <script  type="text/javascript"  src="/static/plugins/marked/marked.min.js"></script> -->
+<!-- <script  type="text/javascript"  src="/static/plugins/mark/mark.min.js"></script> -->
 
 
 <script src="/static/plugins/md-toc/md-toc.js"></script>
@@ -172,18 +197,24 @@
         })
     });
 
- 
+    // ADD: AI助手功能
     $(function () {
         
-        // ADD: AI助手功能
         var aiChatWindow = $("#ai-chat-window");
         var aiChatMessages = $("#ai-chat-messages");
         var aiChatInput = $("#ai-chat-input");
         var aiChatSend = $("#ai-chat-send");
         var aiChatClose = $(".ai-chat-close");
+        var aiChatToggle = $("#ai-chat-toggle");
 
         aiChatClose.click(function () {
             aiChatWindow.hide();
+            aiChatToggle.show();
+        });
+
+        aiChatToggle.click(function () {
+            aiChatWindow.show();
+            aiChatToggle.hide();
         });
 
         aiChatSend.click(sendMessage);
@@ -221,10 +252,29 @@
             }
         }
 
+        // function appendMessage(role, content) {
+        //     var messageClass = role === "user" ? "user-message" : "assistant-message"
+        // aiChatMessages.append("<div class='" + messageClass + "'>" + content + "</div>");
+        // aiChatMessages.scrollTop(aiChatMessages[0].scrollHeight);
+        // }
+
         function appendMessage(role, content) {
             var messageClass = role === "user" ? "user-message" : "assistant-message";
-        aiChatMessages.append("<div class='" + messageClass + "'>" + content + "</div>");
-        aiChatMessages.scrollTop(aiChatMessages[0].scrollHeight);
+            var messageId = "message-" + Date.now();
+            aiChatMessages.append("<div class='" + messageClass + "' id='" + messageId + "'></div>");
+
+            // 使用 editormd 渲染 Markdown 内容
+            editormd.markdownToHTML(messageId, {
+                markdown: content,
+                htmlDecode: "style,script,iframe",
+                emoji: false,
+                taskList: true,
+                tex: true,
+                flowChart: true,
+                sequenceDiagram: true,
+            });
+
+            aiChatMessages.scrollTop(aiChatMessages[0].scrollHeight);
         }
     });
 

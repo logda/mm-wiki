@@ -27,7 +27,7 @@ go build ./
 
 ```
 curl -X POST https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions \
--H "Authorization: Bearer sk-db3c48935a704e1994258b928aa3ef24" \
+-H "Authorization: Bearer YOUR_API_KEY" \
 -H "Content-Type: application/json" \
 -d '{
     "model": "qwen-plus",
